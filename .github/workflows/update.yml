@@ -20,8 +20,16 @@ jobs:
       - name: Verzeichnis von Erzabtei laden
         run: |
           # Lädt die Webseite herunter und speichert sie als 'directory.html'
-          # -s unterdrückt Fortschrittsanzeigen, damit das Log sauber bleibt
-          curl -s "https://mp3.erzabtei.de/" > directory.html
+          # -s: Still (weniger Text im Log)
+          # -L: Follow Redirects (WICHTIG, falls die Seite umgeleitet wird)
+          curl -sL "https://mp3.erzabtei.de/" > directory.html
+          
+          # Sicherheitscheck: Ist die Datei größer als 0 Bytes?
+          if [ ! -s directory.html ]; then
+            echo "FEHLER: Die heruntergeladene Datei ist leer!"
+            exit 1
+          fi
+          
           echo "Download abgeschlossen. Größe der Datei:"
           ls -lh directory.html
 
