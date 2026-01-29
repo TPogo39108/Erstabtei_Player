@@ -1,1 +1,42 @@
+name: Update Audio List
 
+on:
+  schedule:
+    # Läuft automatisch zu jeder vollen Stunde (z.B. 14:00, 15:00)
+    - cron: '0 * * * *'
+  # Erlaubt dir, den Bot manuell per Klick zu starten (unter dem Reiter "Actions")
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v3
+
+      - name: Verzeichnis von Erzabtei laden
+        run: |
+          # Lädt die Webseite herunter und speichert sie als 'directory.html'
+          # -s unterdrückt Fortschrittsanzeigen, damit das Log sauber bleibt
+          curl -s "https://mp3.erzabtei.de/" > directory.html
+          echo "Download abgeschlossen. Größe der Datei:"
+          ls -lh directory.html
+
+      - name: Änderungen speichern (Commit & Push)
+        run: |
+          # Konfiguriert den Bot-Benutzer für Git
+          git config user.name "Erzabtei Bot"
+          git config user.email "bot@github.com"
+          
+          # Fügt die neue Datei hinzu
+          git add directory.html
+          
+          # Speichert nur, wenn sich wirklich etwas geändert hat
+          # "|| echo..." verhindert einen Fehlerabbruch, wenn keine Änderungen da sind
+          git commit -m "Update directory listing [Auto]" || echo "Keine neuen Aufnahmen gefunden."
+          
+          # Lädt die Änderungen zurück ins Repository
+          git push
